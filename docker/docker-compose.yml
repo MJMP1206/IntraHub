@@ -1,0 +1,28 @@
+echo "version: '3.9'
+services:
+  laravel:
+    build: ../backend/laravel_api
+    ports:
+      - '8000:8000'
+  react:
+    build: ../frontend/employee_react
+    ports:
+      - '3000:3000'
+  vue:
+    build: ../frontend/admin_vue
+    ports:
+      - '5173:5173'
+  flask_docs:
+    build: ../microservices/flask_docs
+    ports:
+      - '5001:5001'
+  flask_notify:
+    build: ../microservices/flask_notify
+    ports:
+      - '5002:5002'
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - '80:80'
