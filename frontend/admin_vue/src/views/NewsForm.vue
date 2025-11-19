@@ -1,14 +1,38 @@
 <template>
   <div class="news-form">
-    <div class="form-header">
-      <router-link to="/news" class="back-btn">
-        ← Volver a Noticias
-      </router-link>
-      <h1>{{ isEditing ? 'Editar Noticia' : 'Nueva Noticia' }}</h1>
-    </div>
+    <nav class="navbar">
+      <div class="nav-brand">
+        <h2>IntraHub Admin</h2>
+      </div>
+      
+      <div class="nav-menu">
+        <router-link to="/dashboard" class="nav-link">
+          <span>📊</span> Dashboard
+        </router-link>
+        <router-link to="/news" class="nav-link">
+          <span>📰</span> Noticias
+        </router-link>
+        <router-link to="/vacantes" class="nav-link">
+          <span>💼</span> Vacantes
+        </router-link>
+      </div>
 
-    <div class="form-container">
-      <form @submit.prevent="handleSubmit" class="form">
+      <div class="nav-user">
+        <span class="user-name">{{ authStore.user?.name }}</span>
+        <button @click="handleLogout" class="logout-btn">Cerrar Sesión</button>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <div class="form-header">
+        <router-link to="/news" class="back-btn">
+          ← Volver a Noticias
+        </router-link>
+        <h1>{{ isEditing ? 'Editar Noticia' : 'Nueva Noticia' }}</h1>
+      </div>
+
+      <div class="form-container">
+        <form @submit.prevent="handleSubmit" class="form">
         <div class="form-group">
           <label for="title" class="required">Título de la Noticia</label>
           <input
@@ -49,6 +73,23 @@
           </small>
         </div>
 
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input
+              id="send_notification"
+              v-model="form.send_notification"
+              type="checkbox"
+              :disabled="isLoading"
+            />
+            <label for="send_notification" class="checkbox-label">
+              📧 Enviar notificación a empleados
+            </label>
+          </div>
+          <small class="field-help">
+            Se enviará una notificación a todos los empleados sobre esta nueva noticia
+          </small>
+        </div>
+
         <div v-if="error" class="error-message">
           <strong>Error:</strong> {{ error }}
         </div>
@@ -86,6 +127,7 @@
         </div>
       </div>
     </div>
+    </main>
   </div>
 </template>
 
@@ -94,6 +136,7 @@ import { reactive, ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useNewsStore } from '../stores/news.js'
 import { useAuthStore } from '../stores/auth.js'
+import notificationService from '../services/notificationService.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -111,7 +154,8 @@ const error = ref(null)
 const form = reactive({
   title: '',
   content: '',
-  published_at: ''
+  published_at: '',
+  send_notification: false
 })
 
 const currentUser = computed(() => authStore.user)
@@ -156,10 +200,25 @@ const handleSubmit = async () => {
       published_at: form.published_at || null
     }
 
+    let createdNews
     if (isEditing.value) {
-      await newsStore.updateNews(props.id, newsData)
+      createdNews = await newsStore.updateNews(props.id, newsData)
     } else {
-      await newsStore.createNews(newsData)
+      createdNews = await newsStore.createNews(newsData)
+    }
+
+    // Enviar notificación si está marcada la opción
+    if (form.send_notification && createdNews) {
+      try {
+        await notificationService.sendNewsNotification(
+          createdNews.id,
+          `Nueva noticia: ${form.title}`,
+          `Se ha publicado una nueva noticia: "${form.title}". ¡No te la pierdas!`
+        )
+      } catch (notificationError) {
+        console.error('Error enviando notificación:', notificationError)
+        // No bloquear el flujo si falla la notificación
+      }
     }
 
     router.push('/news')
@@ -194,6 +253,11 @@ const loadNewsForEditing = async () => {
   }
 }
 
+const handleLogout = async () => {
+  await authStore.logout()
+  router.push('/login')
+}
+
 onMounted(() => {
   loadNewsForEditing()
 })
@@ -201,6 +265,81 @@ onMounted(() => {
 
 <style scoped>
 .news-form {
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.navbar {
+  background: white;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.nav-brand h2 {
+  color: #1f2937;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.nav-menu {
+  display: flex;
+  gap: 2rem;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: #6b7280;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.nav-link:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.nav-link.router-link-active {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-name {
+  color: #374151;
+  font-weight: 500;
+}
+
+.logout-btn {
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+}
+
+.logout-btn:hover {
+  background-color: #b91c1c;
+}
+
+.main-content {
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
@@ -295,6 +434,28 @@ onMounted(() => {
   color: #6b7280;
   font-size: 0.75rem;
   margin-top: 0.25rem;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.checkbox-label {
+  color: #374151;
+  font-weight: 500;
+  margin: 0;
+  cursor: pointer;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .error-message {
@@ -418,7 +579,22 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
-  .news-form {
+  .navbar {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .nav-menu {
+    justify-content: space-around;
+  }
+
+  .nav-user {
+    justify-content: space-between;
+  }
+
+  .main-content {
     padding: 1rem;
   }
 

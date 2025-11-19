@@ -6,6 +6,7 @@ import HomeNews from "../pages/HomeNews";
 import Vacantes from "../pages/Vacantes";
 import Perfil from "../pages/Perfil";
 import Boletas from "../pages/Boletas";
+import Notifications from "../pages/Notifications";
 import AdminVacantes from "../pages/AdminVacantes";
 import AdminNews from "../pages/AdminNews";
 import Navbar from "../components/Navbar";
@@ -56,6 +57,16 @@ export default function AppRouter() {
           <ProtectedRoute>
             <Navbar />
             <Boletas />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <Navbar />
+            <Notifications />
           </ProtectedRoute>
         }
       />
