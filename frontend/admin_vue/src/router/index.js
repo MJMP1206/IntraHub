@@ -8,6 +8,7 @@ import NewsList from '../views/NewsList.vue'
 import NewsForm from '../views/NewsForm.vue'
 import VacantesList from '../views/VacantesList.vue'
 import VacanteForm from '../views/VacanteForm.vue'
+import NotificationsManagement from '../views/NotificationsManagement.vue'
 
 const routes = [
   {
@@ -62,6 +63,12 @@ const routes = [
     name: 'EditVacante',
     component: VacanteForm,
     props: true,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/notifications',
+    name: 'NotificationsManagement',
+    component: NotificationsManagement,
     meta: { requiresAuth: true }
   }
 ]

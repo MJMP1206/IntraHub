@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import NotificationDropdown from "./NotificationDropdown";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -23,6 +24,11 @@ export default function Navbar() {
           <span>{user?.name || 'Usuario'}</span>
           {isAdmin() && <small className="admin-badge">Admin</small>}
         </div>
+        
+        {/* NOTIFICACIONES */}
+        <div className="sidebar-notifications">
+          <NotificationDropdown />
+        </div>
       </div>
 
       {/* NAVEGACIÓN */}
@@ -32,6 +38,9 @@ export default function Navbar() {
         </NavLink>
         <NavLink to="/vacantes" className={linkClass}>
           Vacantes
+        </NavLink>
+        <NavLink to="/notifications" className={linkClass}>
+          Notificaciones
         </NavLink>
         <NavLink to="/perfil" className={linkClass}>
           Mi perfil

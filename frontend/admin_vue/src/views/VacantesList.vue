@@ -1,14 +1,38 @@
 <template>
   <div class="vacantes-list">
-    <div class="header">
-      <h1>Gestión de Vacantes</h1>
-      <router-link to="/vacantes/create" class="btn btn-primary">
-        <span>💼</span> Nueva Vacante
-      </router-link>
-    </div>
+    <nav class="navbar">
+      <div class="nav-brand">
+        <h2>IntraHub Admin</h2>
+      </div>
+      
+      <div class="nav-menu">
+        <router-link to="/dashboard" class="nav-link">
+          <span>📊</span> Dashboard
+        </router-link>
+        <router-link to="/news" class="nav-link">
+          <span>📰</span> Noticias
+        </router-link>
+        <router-link to="/vacantes" class="nav-link">
+          <span>💼</span> Vacantes
+        </router-link>
+      </div>
 
-    <!-- Filtros -->
-    <div class="filters">
+      <div class="nav-user">
+        <span class="user-name">{{ authStore.user?.name }}</span>
+        <button @click="handleLogout" class="logout-btn">Cerrar Sesión</button>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <div class="header">
+        <h1>Gestión de Vacantes</h1>
+        <router-link to="/vacantes/create" class="btn btn-primary">
+          <span>💼</span> Nueva Vacante
+        </router-link>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filters">
       <div class="filter-group">
         <label for="estado">Estado:</label>
         <select 
@@ -153,13 +177,18 @@
         </div>
       </div>
     </div>
+    </main>
   </div>
 </template>
 
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useVacanteStore } from '../stores/vacante.js'
+import { useAuthStore } from '../stores/auth.js'
 
+const router = useRouter()
+const authStore = useAuthStore()
 const vacanteStore = useVacanteStore()
 
 const showDeleteModal = ref(false)
@@ -253,6 +282,11 @@ const loadVacantes = () => {
   vacanteStore.fetchVacantes(activeFilters)
 }
 
+const handleLogout = async () => {
+  await authStore.logout()
+  router.push('/login')
+}
+
 onMounted(() => {
   loadVacantes()
 })
@@ -260,6 +294,81 @@ onMounted(() => {
 
 <style scoped>
 .vacantes-list {
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.navbar {
+  background: white;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.nav-brand h2 {
+  color: #1f2937;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.nav-menu {
+  display: flex;
+  gap: 2rem;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: #6b7280;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.nav-link:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.nav-link.router-link-active {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-name {
+  color: #374151;
+  font-weight: 500;
+}
+
+.logout-btn {
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+}
+
+.logout-btn:hover {
+  background-color: #b91c1c;
+}
+
+.main-content {
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
@@ -537,7 +646,22 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
-  .vacantes-list {
+  .navbar {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .nav-menu {
+    justify-content: space-around;
+  }
+
+  .nav-user {
+    justify-content: space-between;
+  }
+
+  .main-content {
     padding: 1rem;
   }
 
